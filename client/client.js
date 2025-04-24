@@ -111,3 +111,26 @@ if (submitGroupId && timerContainer) {
     });
 }
 
+const createGroupButton = document.querySelector("#createGroup");
+
+if (createGroupButton) {
+    createGroupButton.addEventListener("click", () => {
+        const groupName = document.querySelector("#groupName").value;
+
+        if (groupName.trim() === "") {
+            alert("Group name cannot be empty.");
+            return;
+        }
+
+        socket.emit("createGroup", groupName, userId);
+    });
+
+    socket.on("groupCreated", (groupId, groupName, timerId) => {
+        alert(`Group "${groupName}" created successfully with ID: ${groupId} and Timer ID: ${timerId}`);
+    });
+
+    socket.on("groupCreationError", (errorMessage) => {
+        alert(`Error creating group: ${errorMessage}`);
+    });
+}
+

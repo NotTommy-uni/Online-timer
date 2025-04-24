@@ -214,4 +214,45 @@ io.on("connection", socket => {
         })
     });
 
+    socket.on("createGroup", (groupName, userId) => {
+        // Step 1: Inserisci un nuovo timer nel database
+        const insertTimerSql = "INSERT INTO timer.timers VALUES (NULL, 3000, ?, 1)";
+        connection.query(insertTimerSql, [userId], (timerError, timerResults) => {
+            if (timerError) {
+                console.error("Error creating group timer:", timerError.message);
+                socket.emit("groupCreationError", "Failed to create group timer. Please try again.");
+                return;
+            }
+
+            const timerId = timerResults.insertId; // Ottieni l'ID del timer appena creato
+
+            // Step 2: Inserisci il gruppo nel database con il riferimento al timer
+            const insertGroupSql = "INSERT INTO timer.groups (name, fk_timer, user_id) VALUES (?, ?, ?)";
+            connection.query(insertGroupSql, [groupName, timerId, userId], (groupError, groupResults) => {
+                if (groupError) {
+                    console.error("Error creating group:", groupError.message);
+                    socket.emit("groupCreationError", "Failed to create group. Please try again.");
+                    return;
+                }
+
+                const groupId = groupResults.insertId; // Ottieni l'ID del gruppo appena creato
+
+                // Step 3: Inizializza il timer del gruppo nel server
+                if (!userTimers[userId]) {
+                    userTimers[userId] = {
+                        startValue: {},
+                        currentValue: {},
+                        intervals: {}
+                    };
+                }
+
+                userTimers[userId].startValue[timerId] = 0; // Timer inizializzato a 0
+                userTimers[userId].currentValue[timerId] = 0;
+
+                // Invia una conferma al client
+                socket.emit("groupCreated", groupId, groupName, timerId);
+            });
+        });
+    });
+
 });
