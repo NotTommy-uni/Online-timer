@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
 
+  <script>
+    document.addEventListener('click', function (e) {
+      const isInteractive = e.target.closest('button, input, select, textarea, a');
+      
+      if (!isInteractive) {
+        // Sposta il focus su un elemento "vuoto" nascosto che non fa nulla
+        document.getElementById('focusTrap').focus();
+      }
+    });
+  </script>
+
+
   <body>
     <header>
       <h1>Welcome to TimeSpot</h1>
@@ -16,8 +28,9 @@
 
     <main>
       <section class="card">
-        <label for="userId">Select user Id</label>
-        <input type="text" name="userId" id="userId" />
+        <div id="focusTrap" tabindex="-1" style="position: absolute; width: 0; height: 0; overflow: hidden;"></div>
+        <label for="userId">Select user Id:</label>
+        <input type="number" name="userId" id="userId" />
         <button id="submitUserId">Submit user Id</button>
 
         <div class="timerContainer">
@@ -34,7 +47,7 @@
 
         <button id="addTimerBtn">+</button>
 
-        <label for="groupId">Submit group id</label>
+        <label for="groupId">Submit group id:</label>
         <input type="number" name="groupId" id="groupId" />
         <button id="submitGroupId">Join group</button>
       </section>
