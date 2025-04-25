@@ -10,29 +10,14 @@
     <link rel="stylesheet" href="css/styleTimer.css" />
   </head>
 
-  <script>
-    document.addEventListener('click', function (e) {
-      const isInteractive = e.target.closest('button, input, select, textarea, a');
-      
-      if (!isInteractive) {
-        // Sposta il focus su un elemento "vuoto" nascosto che non fa nulla
-        document.getElementById('focusTrap').focus();
-      }
-    });
-  </script>
-
-
   <body>
     <header>
       <h1>Welcome to TimeSpot</h1>
     </header>
 
     <main>
-      <section class="card">
-        <div id="focusTrap" tabindex="-1" style="position: absolute; width: 0; height: 0; overflow: hidden;"></div>
-        <label for="userId">Select user Id:</label>
-        <input type="number" name="userId" id="userId" />
-        <button id="submitUserId">Submit user Id</button>
+      <section id="timer">
+        
 
         <div class="timerContainer">
         <!--  <div class="timer">
@@ -48,16 +33,24 @@
 
         <button id="addTimerBtn">+</button>
 
-        <label for="groupId">Submit group id:</label>
+      </section>
+       
+      <section id="group"> 
+        <label for="groupId">Submit group id</label>
         <input type="number" name="groupId" id="groupId" />
         <button id="submitGroupId">Join group</button>
+        
+        <label for="groupName">Group Name:</label>
+        <input type="text" name="groupName" id="groupName">
+        <button id="createGroup">Create Group</button>
+        
 
         <div class="navTimerGroup">
           <a href="index.html" class="nav-button active">Timer</a>
           <a href="group.html" class="nav-button">Gruppi</a>
-      </div>
-
+        </div>
       </section>
+      
     </main>
 
     <footer>
