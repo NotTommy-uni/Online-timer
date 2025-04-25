@@ -1,35 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <script type="module" src="client.js"></script>
-    <link rel="stylesheet" href="css/styleLogin.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login TimeSpot</title>
+  <link rel="stylesheet" href="css/styleLogin.css" />
 </head>
+
+
 <body>
-    <section class="container">
-        <div class="login-container">
-            <div class="circle circle-one"></div>
-            <div class="form-container">
-                <img src="timer.png" alt="illustration" class="illustration" />
-                <h1 class="opacity">LOGIN</h1>
-                <form>
-                    <input type="text" placeholder="USERNAME" id="username" />
-                    <input type="password" placeholder="PASSWORD" id="password" />
-                    <button class="opacity" id="loginButton">SUBMIT</button>
-                </form>
-                <div class="register-forget opacity">
-                    <a href="#">REGISTER</a>
-                    <a href="#">FORGOT PASSWORD</a>
-                </div>
-            </div>
-            <div class="circle circle-two"></div>
-        </div>
-        <div class="theme-btn-container"></div> <!-- Contenitore per i pulsanti del tema -->
-    </section>
+  <div class="screen-1">
+    <div class="logo">
+    <img src="violetClock.png" alt="timer" />
+    </div>
+    <h1>Welcome to TimeSpot!</h1>
+
+    <div class="email">
+      <label for="email">Email Address</label>
+      <div class="sec-2">
+        <ion-icon name="mail-outline"></ion-icon>
+        <input type="email" name="email" placeholder="Username@gmail.com">
+      </div>
+    </div>
+
+    <div class="password">
+      <label for="password">Password</label>
+      <div class="sec-2">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input class="pas" type="password" name="password" placeholder="············">
+        <ion-icon class="show-hide" name="eye-outline"></ion-icon>
+      </div>
+    </div>
+
+    <button class="login">Login</button>
+
+      <div class="footer">
+        <span><a href="#">Sign up</a></span>
+        <span><a href="#">Forgot Password?</a></span>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
-</html>
+
 
 
