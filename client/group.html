@@ -21,5 +21,13 @@
         <h3>Lista Utenti:</h3>
         <!-- La lista degli utenti sarà aggiunta dinamicamente qui -->
     </div>
+    <br>
+    <button id="homepage">Timer</button>
+    <script>
+        document.querySelector("#homepage").addEventListener("click", () => {
+            const userId = new URLSearchParams(window.location.search).get("userId");
+            window.location.href = `index.html?userId=${encodeURIComponent(userId)}`;
+        });
+    </script>
 </body>
 </html>
