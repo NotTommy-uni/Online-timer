@@ -111,26 +111,51 @@ if (submitGroupId && timerContainer) {
     });
 }
 
-const createGroupButton = document.querySelector("#createGroup");
+// Verifica se siamo nella pagina group.html
+if (window.location.pathname.endsWith("group.html")) {
+    const createGroupButton = document.querySelector("#createGroup");
+    const userListContainer = document.querySelector("#userListContainer");
 
-if (createGroupButton) {
-    createGroupButton.addEventListener("click", () => {
-        const groupName = document.querySelector("#groupName").value;
+    // Richiedi la lista degli utenti al server
+    if (userId) {
+        socket.emit("getUsers", userId);
+    }
 
-        if (groupName.trim() === "") {
-            alert("Group name cannot be empty.");
-            return;
-        }
-
-        socket.emit("createGroup", groupName, userId);
+    // Ricevi la lista degli utenti dal server
+    socket.on("usersList", (users) => {
+        userListContainer.innerHTML = "<h3>Lista utenti:</h3>";
+        users.forEach(user => {
+            const userElement = document.createElement("div");
+            userElement.textContent = `${user.name} (ID: ${user.id})`;
+            userListContainer.appendChild(userElement);
+        });
     });
 
-    socket.on("groupCreated", (groupId, groupName, timerId) => {
-        alert(`Group "${groupName}" created successfully with ID: ${groupId} and Timer ID: ${timerId}`);
+    socket.on("usersError", (errorMessage) => {
+        console.error("Errore:", errorMessage);
+        alert(errorMessage);
     });
 
-    socket.on("groupCreationError", (errorMessage) => {
-        alert(`Error creating group: ${errorMessage}`);
-    });
+    // Gestione creazione gruppo
+    if (createGroupButton) {
+        createGroupButton.addEventListener("click", () => {
+            const groupName = document.querySelector("#groupName").value;
+
+            if (groupName.trim() === "") {
+                alert("Il nome del gruppo non può essere vuoto.");
+                return;
+            }
+
+            socket.emit("createGroup", groupName, userId);
+        });
+
+        socket.on("groupCreated", (groupId, groupName, timerId) => {
+            alert(`Gruppo "${groupName}" creato con successo! ID Gruppo: ${groupId}, ID Timer: ${timerId}`);
+        });
+
+        socket.on("groupCreationError", (errorMessage) => {
+            alert(`Errore durante la creazione del gruppo: ${errorMessage}`);
+        });
+    }
 }
 

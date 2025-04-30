@@ -255,4 +255,17 @@ io.on("connection", socket => {
         });
     });
 
+    socket.on("getUsers", (currentUserId) => {
+        const sql = "SELECT id, name FROM timer.users WHERE id != ?";
+        connection.query(sql, [currentUserId], (err, results) => {
+            if (err) {
+                console.error("Errore durante il recupero degli utenti:", err.message);
+                socket.emit("usersError", "Errore durante il recupero degli utenti.");
+                return;
+            }
+
+            socket.emit("usersList", results); // Invia la lista degli utenti al client
+        });
+    });
+
 });
