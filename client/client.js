@@ -116,12 +116,14 @@ if (window.location.pathname.endsWith("group.html")) {
     const createGroupButton = document.querySelector("#createGroup");
     const groupNameInput = document.querySelector("#groupName");
     const userListContainer = document.querySelector("#userListContainer");
+    const notificationsContainer = document.querySelector("#notificationsContainer");
 
     let selectedUserIds = new Set();
 
     // Richiedi la lista degli utenti al server
     if (userId) {
         socket.emit("getUsers", userId);
+        socket.emit("getNotifications", userId);
     }
 
     // Ricevi la lista degli utenti dal server
@@ -200,6 +202,53 @@ if (window.location.pathname.endsWith("group.html")) {
     });
 
     socket.on("declineInviteError", (errorMessage) => {
+        alert(errorMessage);
+    });
+
+    // Ricevi e visualizza le notifiche
+    socket.on("notificationsList", (notifications) => {
+        notificationsContainer.innerHTML = "<h3>Notifiche:</h3>";
+        notifications.forEach(notification => {
+            const notificationElement = document.createElement("div");
+            notificationElement.classList.add("notificationItem");
+
+            notificationElement.innerHTML = `
+                <p>Sei stato invitato al gruppo: <strong>${notification.group_name}</strong></p>
+                <button class="acceptNotification" data-notification-id="${notification.id}">Accetta</button>
+                <button class="declineNotification" data-notification-id="${notification.id}">Rifiuta</button>
+            `;
+
+            notificationsContainer.appendChild(notificationElement);
+        });
+
+        // Aggiungi event listener ai pulsanti
+        document.querySelectorAll(".acceptNotification").forEach(button => {
+            button.addEventListener("click", (event) => {
+                const notificationId = event.target.dataset.notificationId;
+                socket.emit("acceptNotification", notificationId, userId);
+            });
+        });
+
+        document.querySelectorAll(".declineNotification").forEach(button => {
+            button.addEventListener("click", (event) => {
+                const notificationId = event.target.dataset.notificationId;
+                socket.emit("declineNotification", notificationId, userId);
+            });
+        });
+    });
+
+    socket.on("notificationsError", (errorMessage) => {
+        console.error("Errore:", errorMessage);
+        alert(errorMessage);
+    });
+
+    socket.on("notificationActionSuccess", (message) => {
+        alert(message);
+        // Ricarica le notifiche dopo l'azione
+        socket.emit("getNotifications", userId);
+    });
+
+    socket.on("notificationActionError", (errorMessage) => {
         alert(errorMessage);
     });
 }

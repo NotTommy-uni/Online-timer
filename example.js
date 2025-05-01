@@ -325,4 +325,51 @@ io.on("connection", socket => {
         });
     });
 
+    // Recupera le notifiche per un utente
+    socket.on("getNotifications", (userId) => {
+        const sql = `
+            SELECT notifications.id, notifications.fk_group, groups.name AS group_name, notifications.status
+            FROM timer.notifications
+            INNER JOIN timer.groups ON notifications.fk_group = groups.id
+            WHERE notifications.fk_user = ? AND notifications.status = 'sent'
+        `;
+        connection.query(sql, [userId], (err, results) => {
+            if (err) {
+                console.error("Errore durante il recupero delle notifiche:", err.message);
+                socket.emit("notificationsError", "Errore durante il recupero delle notifiche.");
+                return;
+            }
+
+            socket.emit("notificationsList", results); // Invia le notifiche al client
+        });
+    });
+
+    // Gestisce l'accettazione di una notifica
+    socket.on("acceptNotification", (notificationId, userId) => {
+        const updateSql = "UPDATE timer.notifications SET status = 'accepted' WHERE id = ? AND fk_user = ?";
+        connection.query(updateSql, [notificationId, userId], (err) => {
+            if (err) {
+                console.error("Errore durante l'accettazione della notifica:", err.message);
+                socket.emit("notificationActionError", "Errore durante l'accettazione della notifica.");
+                return;
+            }
+
+            socket.emit("notificationActionSuccess", "Notifica accettata con successo.");
+        });
+    });
+
+    // Gestisce il rifiuto di una notifica
+    socket.on("declineNotification", (notificationId, userId) => {
+        const updateSql = "UPDATE timer.notifications SET status = 'declined' WHERE id = ? AND fk_user = ?";
+        connection.query(updateSql, [notificationId, userId], (err) => {
+            if (err) {
+                console.error("Errore durante il rifiuto della notifica:", err.message);
+                socket.emit("notificationActionError", "Errore durante il rifiuto della notifica.");
+                return;
+            }
+
+            socket.emit("notificationActionSuccess", "Notifica rifiutata con successo.");
+        });
+    });
+
 });
