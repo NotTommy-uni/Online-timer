@@ -214,8 +214,7 @@ io.on("connection", socket => {
         })
     });
 
-    socket.on("createGroup", (groupName, userId) => {
-        // Step 1: Inserisci un nuovo timer nel database
+    socket.on("createGroup", (groupName, userId, invitedUserIds) => {
         const insertTimerSql = "INSERT INTO timer.timers VALUES (NULL, 3000, ?, 1)";
         connection.query(insertTimerSql, [userId], (timerError, timerResults) => {
             if (timerError) {
@@ -224,9 +223,8 @@ io.on("connection", socket => {
                 return;
             }
 
-            const timerId = timerResults.insertId; // Ottieni l'ID del timer appena creato
+            const timerId = timerResults.insertId;
 
-            // Step 2: Inserisci il gruppo nel database con il riferimento al timer
             const insertGroupSql = "INSERT INTO timer.groups (name, fk_timer, user_id) VALUES (?, ?, ?)";
             connection.query(insertGroupSql, [groupName, timerId, userId], (groupError, groupResults) => {
                 if (groupError) {
@@ -235,9 +233,21 @@ io.on("connection", socket => {
                     return;
                 }
 
-                const groupId = groupResults.insertId; // Ottieni l'ID del gruppo appena creato
+                const groupId = groupResults.insertId;
 
-                // Step 3: Inizializza il timer del gruppo nel server
+                invitedUserIds.forEach((invitedUserId) => {
+                    const insertNotificationSql = "INSERT INTO timer.notifications (fk_user, fk_group, status) VALUES (?, ?, 'sent')";
+                    connection.query(insertNotificationSql, [invitedUserId, groupId], (notificationError) => {
+                        if (notificationError) {
+                            console.error("Error sending invite:", notificationError.message);
+                            return;
+                        }
+
+                        // Notifica l'utente invitato
+                        io.to(invitedUserId).emit(`groupInvite_${invitedUserId}`, { groupId, groupName, senderId: userId });
+                    });
+                });
+
                 if (!userTimers[userId]) {
                     userTimers[userId] = {
                         startValue: {},
@@ -246,10 +256,9 @@ io.on("connection", socket => {
                     };
                 }
 
-                userTimers[userId].startValue[timerId] = 0; // Timer inizializzato a 0
+                userTimers[userId].startValue[timerId] = 0;
                 userTimers[userId].currentValue[timerId] = 0;
 
-                // Invia una conferma al client
                 socket.emit("groupCreated", groupId, groupName, timerId);
             });
         });
@@ -265,6 +274,54 @@ io.on("connection", socket => {
             }
 
             socket.emit("usersList", results); // Invia la lista degli utenti al client
+        });
+    });
+
+    // Gestisce l'invio di inviti agli utenti
+    socket.on("sendGroupInvites", (groupId, senderId, invitedUserIds) => {
+        invitedUserIds.forEach((userId) => {
+            const sql = "INSERT INTO timer.notifications (fk_user, fk_group, status) VALUES (?, ?, 'sent')";
+            connection.query(sql, [userId, groupId], (err) => {
+                if (err) {
+                    console.error("Errore durante l'invio dell'invito:", err.message);
+                    socket.emit("inviteError", `Errore durante l'invio dell'invito a userId ${userId}`);
+                    return;
+                }
+
+                // Notifica il destinatario dell'invito
+                io.emit(`groupInvite_${userId}`, { groupId, senderId });
+            });
+        });
+
+        socket.emit("inviteSuccess", "Inviti inviati con successo!");
+    });
+
+    // Gestisce l'accettazione dell'invito
+    socket.on("acceptGroupInvite", (groupId, userId) => {
+        const updateSql = "UPDATE timer.notifications SET status = 'accepted' WHERE fk_user = ? AND fk_group = ?";
+        connection.query(updateSql, [userId, groupId], (err) => {
+            if (err) {
+                console.error("Errore durante l'accettazione dell'invito:", err.message);
+                socket.emit("acceptInviteError", "Errore durante l'accettazione dell'invito.");
+                return;
+            }
+
+            socket.emit("acceptInviteSuccess", "Invito accettato con successo!");
+            socket.emit("enterGroup", groupId, userId); // L'utente entra nel gruppo
+        });
+    });
+
+    // Gestisce il rifiuto dell'invito
+    socket.on("declineGroupInvite", (groupId, userId) => {
+        const updateSql = "UPDATE timer.notifications SET status = 'declined' WHERE fk_user = ? AND fk_group = ?";
+        connection.query(updateSql, [userId, groupId], (err) => {
+            if (err) {
+                console.error("Errore durante il rifiuto dell'invito:", err.message);
+                socket.emit("declineInviteError", "Errore durante il rifiuto dell'invito.");
+                return;
+            }
+
+            socket.emit("declineInviteSuccess", "Invito rifiutato.");
         });
     });
 
