@@ -185,33 +185,54 @@ io.on("connection", socket => {
 
 
     // Search if the user belongs to the group
-    socket.on("enterGroup", (groupId, userId) =>{
-        // Needs the check for the user belonging to the group.
+    socket.on("enterGroup", (groupId, userId) => {
+        // Verifica se l'utente è il creatore del gruppo o ha accettato l'invito
+        const sql = `
+            SELECT g.*, t.*
+            FROM timer.groups g
+            INNER JOIN timer.timers t ON g.fk_timer = t.id
+            WHERE g.id = ? AND (g.user_id = ? OR EXISTS (
+                SELECT 1
+                FROM timer.notifications n
+                WHERE n.fk_user = ? AND n.fk_group = g.id AND n.status = 'accepted'
+            ))
+        `;
 
-        let sql = "SELECT groups.*, timers.* FROM timer.groups INNER JOIN timer.timers ON groups.fk_timer = timers.id WHERE groups.id = ?";
-        connection.query(sql, [groupId, userId], (err, results)=>{
-            if(err) console.log(err);
+        connection.query(sql, [groupId, userId, userId], (err, results) => {
+            if (err) {
+                console.error("Errore durante la verifica del gruppo:", err.message);
+                socket.emit("groupAccessError", "Errore durante la verifica del gruppo.");
+                return;
+            }
 
-            let groupCreatorId = results[0].user_id;
-            let timerId = results[0].id;
-            if(userTimers[groupCreatorId] === undefined){
-                userTimers[groupCreatorId] = { 
+            if (results.length === 0) {
+                socket.emit("groupAccessDenied", "Non sei autorizzato a entrare in questo gruppo.");
+                return;
+            }
+
+            const groupCreatorId = results[0].user_id;
+            const timerId = results[0].id;
+
+            if (!userTimers[groupCreatorId]) {
+                userTimers[groupCreatorId] = {
                     startValue: {},
                     currentValue: {},
                     intervals: {}
-                }
+                };
             }
-            if(userTimers[groupCreatorId].startValue[timerId] === undefined){  
-                // initialize the timer the user is not logged
+
+            if (!userTimers[groupCreatorId].startValue[timerId]) {
+                // Inizializza il timer se non è già stato configurato
                 userTimers[groupCreatorId].startValue[timerId] = results[0].time;
                 userTimers[groupCreatorId].currentValue[timerId] = results[0].time;
-            }else{
-                // set the starting lenght of the timers as the values used in the already open clients
-                    results[0].time = userTimers[groupCreatorId].currentValue[timerId];
+            } else {
+                // Imposta il valore corrente del timer
+                results[0].time = userTimers[groupCreatorId].currentValue[timerId];
             }
-            socket.emit('initializeTimers', [{id: timerId, value: results[0].time}]);
+
+            socket.emit("initializeTimers", [{ id: timerId, value: results[0].time }]);
             console.log(userTimers);
-        })
+        });
     });
 
     socket.on("createGroup", (groupName, userId, invitedUserIds) => {
