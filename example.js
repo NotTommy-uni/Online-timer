@@ -75,7 +75,35 @@ io.on("connection", socket => {
         });
     });
 
+    // Gestione della registrazione
+    socket.on("register", (username, password) => {
+        const checkUserSql = "SELECT * FROM timer.users WHERE name = ?";
+        connection.query(checkUserSql, [username], (err, results) => {
+            if (err) {
+                console.error("Errore durante la registrazione:", err.message);
+                socket.emit("registerError", "Errore durante la registrazione. Riprova.");
+                return;
+            }
 
+            if (results.length > 0) {
+                socket.emit("registerError", "Username già in uso. Scegli un altro username.");
+                return;
+            }
+
+            // Inserimento dell'utente senza specificare l'ID
+            const insertUserSql = "INSERT INTO timer.users (name, password) VALUES (?, ?)";
+            connection.query(insertUserSql, [username, password], (insertErr, insertResults) => {
+                if (insertErr) {
+                    console.error("Errore durante l'inserimento dell'utente:", insertErr.message);
+                    socket.emit("registerError", "Errore durante la registrazione. Riprova.");
+                    return;
+                }
+
+                console.log("Utente registrato con ID:", insertResults.insertId);
+                socket.emit("registerSuccess", "Registrazione completata con successo! Ora puoi effettuare il login.");
+            });
+        });
+    });
 
     socket.on('sendUserId', async (userId)=>{
             try{

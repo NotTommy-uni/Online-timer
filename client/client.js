@@ -29,6 +29,34 @@ if (loginButton) {
     });
 }
 
+// Gestione della registrazione
+const registerButton = document.querySelector("#registerButton");
+if (registerButton) {
+    const usernameInput = document.querySelector("#username");
+    const passwordInput = document.querySelector("#password");
+
+    registerButton.addEventListener("click", () => {
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+            alert("Inserisci un username e una password.");
+            return;
+        }
+
+        socket.emit("register", username, password);
+    });
+
+    socket.on("registerSuccess", (message) => {
+        alert(message);
+        window.location.href = "login.html"; // Reindirizza alla pagina di login
+    });
+
+    socket.on("registerError", (errorMessage) => {
+        alert(errorMessage);
+    });
+}
+
 // Recupera l'userId dalla query string
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get("userId");
