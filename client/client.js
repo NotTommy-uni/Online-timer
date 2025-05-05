@@ -70,13 +70,8 @@ if (userId) {
 const submitGroupId = document.querySelector("#submitGroupId");
 const timerContainer = document.querySelector(".timerContainer");
 
-if (submitGroupId && timerContainer) {
+if (timerContainer) {
     let clientTimerIds = new Set();
-
-    submitGroupId.addEventListener('click', () => {
-        let groupId = document.querySelector("#groupId").value;
-        socket.emit("enterGroup", groupId, userId);
-    });
 
     timerContainer.addEventListener('click', (event) => {
         let timerId = Number(event.target.id.replace(/^\D+/g, ''));
@@ -235,7 +230,7 @@ if (window.location.pathname.endsWith("group.html")) {
 
     // Ricevi e visualizza le notifiche
     socket.on("notificationsList", (notifications) => {
-        notificationsContainer.innerHTML = "<h3>Notifiche:</h3>";
+        notificationsContainer.innerHTML = "";
         notifications.forEach(notification => {
             const notificationElement = document.createElement("div");
             notificationElement.classList.add("notificationItem");
