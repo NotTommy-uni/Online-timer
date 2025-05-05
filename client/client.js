@@ -136,9 +136,6 @@ if (timerContainer) {
 
 // Verifica se siamo nella pagina group.html
 if (window.location.pathname.endsWith("group.html")) {
-    const createGroupButton = document.querySelector("#createGroup");
-    const groupNameInput = document.querySelector("#groupName");
-    const userListContainer = document.querySelector("#userListContainer");
     const notificationsContainer = document.querySelector("#notificationsContainer");
     const userGroupsContainer = document.querySelector("#userGroupsContainer");
 
@@ -146,63 +143,9 @@ if (window.location.pathname.endsWith("group.html")) {
 
     // Richiedi la lista degli utenti al server
     if (userId) {
-        socket.emit("getUsers", userId);
         socket.emit("getNotifications", userId);
         socket.emit("getUserGroups", userId);
     }
-
-    // Ricevi la lista degli utenti dal server
-    socket.on("usersList", (users) => {
-        userListContainer.innerHTML = "<h3>Lista utenti:</h3>";
-        users.forEach(user => {
-            const userElement = document.createElement("div");
-            userElement.classList.add("userItem");
-
-            // Aggiungi un checkbox accanto al nome dell'utente
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.dataset.userId = user.id;
-
-            // Gestisci la selezione/deselezione tramite checkbox
-            checkbox.addEventListener("change", (event) => {
-                const userId = event.target.dataset.userId;
-                if (event.target.checked) {
-                    selectedUserIds.add(userId);
-                } else {
-                    selectedUserIds.delete(userId);
-                }
-            });
-
-            userElement.appendChild(checkbox);
-            userElement.appendChild(document.createTextNode(` ${user.name} (ID: ${user.id})`));
-            userListContainer.appendChild(userElement);
-        });
-    });
-
-    socket.on("usersError", (errorMessage) => {
-        console.error("Errore:", errorMessage);
-        alert(errorMessage);
-    });
-
-    // Crea un gruppo e invia gli inviti
-    createGroupButton.addEventListener("click", () => {
-        const groupName = groupNameInput.value;
-
-        if (!groupName || selectedUserIds.size === 0) {
-            alert("Inserisci un nome per il gruppo e seleziona almeno un utente.");
-            return;
-        }
-
-        socket.emit("createGroup", groupName, userId, Array.from(selectedUserIds));
-    });
-
-    socket.on("groupCreated", (groupId, groupName, timerId) => {
-        alert(`Gruppo "${groupName}" creato con successo!`);
-    });
-
-    socket.on("groupCreationError", (errorMessage) => {
-        alert(errorMessage);
-    });
 
     // Ricevi notifiche di invito
     socket.on(`groupInvite_${userId}`, ({ groupId, groupName, senderId }) => {
@@ -307,5 +250,73 @@ if (window.location.pathname.endsWith("group.html")) {
         console.error("Errore:", errorMessage);
         alert(errorMessage);
     });
+}
+
+// Verifica se siamo nella pagina newgroup.html
+if (window.location.pathname.endsWith("newgroup.html")) {
+    const createGroupButton = document.querySelector("#createGroup");
+    const groupNameInput = document.querySelector("#groupName");
+    const userListContainer = document.querySelector("#userListContainer");
+
+    let selectedUserIds = new Set();
+
+    // Richiedi la lista degli utenti al server
+    if (userId) {
+        socket.emit("getUsers", userId);
+    }
+
+    // Ricevi la lista degli utenti dal server
+    socket.on("usersList", (users) => {
+        userListContainer.innerHTML = "<h3>Lista utenti:</h3>";
+        users.forEach(user => {
+            const userElement = document.createElement("div");
+            userElement.classList.add("userItem");
+
+            // Aggiungi un checkbox accanto al nome dell'utente
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.dataset.userId = user.id;
+
+            // Gestisci la selezione/deselezione tramite checkbox
+            checkbox.addEventListener("change", (event) => {
+                const userId = event.target.dataset.userId;
+                if (event.target.checked) {
+                    selectedUserIds.add(userId);
+                } else {
+                    selectedUserIds.delete(userId);
+                }
+            });
+
+            userElement.appendChild(checkbox);
+            userElement.appendChild(document.createTextNode(` ${user.name} (ID: ${user.id})`));
+            userListContainer.appendChild(userElement);
+        });
+    });
+
+    socket.on("usersError", (errorMessage) => {
+        console.error("Errore:", errorMessage);
+        alert(errorMessage);
+    });
+
+    // Crea un gruppo e invia gli inviti
+    createGroupButton.addEventListener("click", () => {
+        const groupName = groupNameInput.value;
+
+        if (!groupName || selectedUserIds.size === 0) {
+            alert("Inserisci un nome per il gruppo e seleziona almeno un utente.");
+            return;
+        }
+
+        socket.emit("createGroup", groupName, userId, Array.from(selectedUserIds));
+    });
+
+    socket.on("groupCreated", (groupId, groupName, timerId) => {
+        alert(`Gruppo "${groupName}" creato con successo!`);
+    });
+
+    socket.on("groupCreationError", (errorMessage) => {
+        alert(errorMessage);
+    });
+
 }
 

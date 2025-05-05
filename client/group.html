@@ -22,25 +22,21 @@
         <!-- I gruppi saranno aggiunti dinamicamente qui -->
     </div>
 
-    <!-- Creazione gruppo -->
-    <div id="createGroupContainer">
-        <label for="groupName">Nome del Gruppo:</label>
-        <input type="text" id="groupName" name="groupName">
-        <button id="createGroup">Crea Gruppo</button>
-    </div>
-
-    <!-- Lista utenti -->
-    <div id="userListContainer">
-        <h3>Lista Utenti:</h3>
-        <!-- Gli utenti saranno aggiunti dinamicamente qui -->
-    </div>
-
     <br>
     <button id="homepage">Timer</button>
     <script>
         document.querySelector("#homepage").addEventListener("click", () => {
             const userId = new URLSearchParams(window.location.search).get("userId");
             window.location.href = `index.html?userId=${encodeURIComponent(userId)}`;
+        });
+    </script>
+
+    <!-- Pulsante per accedere alla pagina di creazione gruppo -->
+    <button id="createNewGroup">Crea Nuovo Gruppo</button>
+    <script>
+        document.querySelector("#createNewGroup").addEventListener("click", () => {
+            const userId = new URLSearchParams(window.location.search).get("userId");
+            window.location.href = `newgroup.html?userId=${encodeURIComponent(userId)}`;
         });
     </script>
 </body>
