@@ -421,4 +421,24 @@ io.on("connection", socket => {
         });
     });
 
+    socket.on("getUserGroups", (userId) => {
+        const sql = `
+            SELECT g.id, g.name
+            FROM timer.groups g
+            LEFT JOIN timer.notifications n ON g.id = n.fk_group
+            WHERE g.user_id = ? OR (n.fk_user = ? AND n.status = 'accepted')
+            GROUP BY g.id
+        `;
+
+        connection.query(sql, [userId, userId], (err, results) => {
+            if (err) {
+                console.error("Errore durante il recupero dei gruppi:", err.message);
+                socket.emit("userGroupsError", "Errore durante il recupero dei gruppi.");
+                return;
+            }
+
+            socket.emit("userGroupsList", results); // Invia la lista dei gruppi al client
+        });
+    });
+
 });

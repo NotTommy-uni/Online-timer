@@ -140,6 +140,7 @@ if (window.location.pathname.endsWith("group.html")) {
     const groupNameInput = document.querySelector("#groupName");
     const userListContainer = document.querySelector("#userListContainer");
     const notificationsContainer = document.querySelector("#notificationsContainer");
+    const userGroupsContainer = document.querySelector("#userGroupsContainer");
 
     let selectedUserIds = new Set();
 
@@ -147,6 +148,7 @@ if (window.location.pathname.endsWith("group.html")) {
     if (userId) {
         socket.emit("getUsers", userId);
         socket.emit("getNotifications", userId);
+        socket.emit("getUserGroups", userId);
     }
 
     // Ricevi la lista degli utenti dal server
@@ -236,9 +238,9 @@ if (window.location.pathname.endsWith("group.html")) {
             notificationElement.classList.add("notificationItem");
 
             notificationElement.innerHTML = `
-                <p>Sei stato invitato al gruppo: <strong>${notification.group_name}</strong></p>
+                <p>Sei stato invitato al gruppo: <strong>${notification.group_name}</strong>
                 <button class="acceptNotification" data-notification-id="${notification.id}">Accetta</button>
-                <button class="declineNotification" data-notification-id="${notification.id}">Rifiuta</button>
+                <button class="declineNotification" data-notification-id="${notification.id}">Rifiuta</button></p>
             `;
 
             notificationsContainer.appendChild(notificationElement);
@@ -272,6 +274,37 @@ if (window.location.pathname.endsWith("group.html")) {
     });
 
     socket.on("notificationActionError", (errorMessage) => {
+        alert(errorMessage);
+    });
+
+    // Ricevi la lista dei gruppi dal server
+    socket.on("userGroupsList", (groups) => {
+        userGroupsContainer.innerHTML = "";
+        if (groups.length === 0) {
+            userGroupsContainer.innerHTML += "<p>Non fai parte di alcun gruppo.</p>";
+        } else {
+            groups.forEach(group => {
+                const groupElement = document.createElement("div");
+                groupElement.classList.add("groupItem");
+                groupElement.innerHTML = `
+                    <p><strong>${group.name}</strong>
+                    <button class="enterGroup" data-group-id="${group.id}">=></button></p>
+                `;
+                userGroupsContainer.appendChild(groupElement);
+            });
+
+            // Aggiungi event listener ai pulsanti "Entra"
+            document.querySelectorAll(".enterGroup").forEach(button => {
+                button.addEventListener("click", (event) => {
+                    const groupId = event.target.dataset.groupId;
+                    socket.emit("enterGroup", groupId, userId);
+                });
+            });
+        }
+    });
+
+    socket.on("userGroupsError", (errorMessage) => {
+        console.error("Errore:", errorMessage);
         alert(errorMessage);
     });
 }
