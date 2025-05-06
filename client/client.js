@@ -4,57 +4,60 @@ const socket = io("http://localhost:3000", {
     transports: ["websocket"]
 });
 
-// Verifica se loginButton esiste prima di aggiungere l'event listener
-const loginButton = document.querySelector("#loginButton");
-if (loginButton) {
-    const usernameInput = document.querySelector("#username");
-    const passwordInput = document.querySelector("#password");
 
-    loginButton.addEventListener("click", () => {
-        const username = usernameInput.value;
-        const password = passwordInput.value;
+if (window.location.pathname.endsWith("login.html")) {
+    const loginButton = document.querySelector("#loginButton");
+    if (loginButton) {
+        const usernameInput = document.querySelector("#username");
+        const passwordInput = document.querySelector("#password");
 
-        socket.emit("login", username, password); // Invia nome e password al server
-    });
+        loginButton.addEventListener("click", () => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
 
-    socket.on("loginSuccess", (userData) => {
-        console.log("Login effettuato con successo!", userData);
-        const userId = userData.userId; // <-- Assicurati che il server ti mandi l'id
-        window.location.href = `index.html?userId=${encodeURIComponent(userId)}`;
-    });
+            socket.emit("login", username, password); // Invia nome e password al server
+        });
 
-    socket.on("loginError", (errorMessage) => {
-        console.error("Errore di login: ", errorMessage);
-        alert(errorMessage);
-    });
+        socket.on("loginSuccess", (userData) => {
+            console.log("Login effettuato con successo!", userData);
+            const userId = userData.userId; // <-- Assicurati che il server ti mandi l'id
+            window.location.href = `index.html?userId=${encodeURIComponent(userId)}`;
+        });
+
+        socket.on("loginError", (errorMessage) => {
+            console.error("Errore di login: ", errorMessage);
+            alert(errorMessage);
+        });
+    }
 }
 
-// Gestione della registrazione
-const registerButton = document.querySelector("#registerButton");
-if (registerButton) {
-    const usernameInput = document.querySelector("#username");
-    const passwordInput = document.querySelector("#password");
+if (window.location.pathname.endsWith("register.html")) {
+    const registerButton = document.querySelector("#registerButton");
+    if (registerButton) {
+        const usernameInput = document.querySelector("#username");
+        const passwordInput = document.querySelector("#password");
 
-    registerButton.addEventListener("click", () => {
-        const username = usernameInput.value;
-        const password = passwordInput.value;
+        registerButton.addEventListener("click", () => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
 
-        if (!username || !password) {
-            alert("Inserisci un username e una password.");
-            return;
-        }
+            if (!username || !password) {
+                alert("Inserisci un username e una password.");
+                return;
+            }
 
-        socket.emit("register", username, password);
-    });
+            socket.emit("register", username, password);
+        });
 
-    socket.on("registerSuccess", (message) => {
-        alert(message);
-        window.location.href = "login.html"; // Reindirizza alla pagina di login
-    });
+        socket.on("registerSuccess", (message) => {
+            alert(message);
+            window.location.href = "login.html"; // Reindirizza alla pagina di login
+        });
 
-    socket.on("registerError", (errorMessage) => {
-        alert(errorMessage);
-    });
+        socket.on("registerError", (errorMessage) => {
+            alert(errorMessage);
+        });
+    }
 }
 
 // Recupera l'userId dalla query string
@@ -66,11 +69,10 @@ if (userId) {
     socket.emit('sendUserId', userId);
 }
 
-// Verifica se gli elementi di index.html esistono prima di aggiungere gli event listener
-const submitGroupId = document.querySelector("#submitGroupId");
-const timerContainer = document.querySelector(".timerContainer");
+if (window.location.pathname.endsWith("index.html")) {
+    // Verifica se gli elementi di index.html esistono prima di aggiungere gli event listener
+    const timerContainer = document.querySelector(".timerContainer");
 
-if (timerContainer) {
     let clientTimerIds = new Set();
 
     timerContainer.addEventListener('click', (event) => {
@@ -318,6 +320,63 @@ if (window.location.pathname.endsWith("newgroup.html")) {
     socket.on("groupCreationError", (errorMessage) => {
         alert(errorMessage);
     });
-
 }
 
+// Verifica se siamo nella pagina timer.html
+if (window.location.pathname.endsWith("timer.html")) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const groupId = urlParams.get("groupId");
+    const userId = urlParams.get("userId");
+    const timerGroupContainer = document.querySelector(".timerGroupContainer");
+
+    // Richiedi i dettagli del gruppo e il timer associato
+    if (groupId && userId) {
+        socket.emit("getGroupTimer", groupId, userId);
+    }
+
+    // Ricevi i dettagli del timer del gruppo
+    socket.on("groupTimerDetails", ({ groupName, timer }) => {
+        // Mostra il nome del gruppo
+        const groupNameElement = document.createElement("h1");
+        groupNameElement.textContent = `Gruppo: ${groupName}`;
+        timerGroupContainer.appendChild(groupNameElement);
+
+        // Mostra il timer
+        const timerElement = document.createElement("div");
+        timerElement.classList.add("timer");
+        timerElement.innerHTML = `
+            <p id="timer${timer.id}">${timer.value}</p>
+            <button id="startStop${timer.id}" class="startStop">Start</button>
+            <button id="reset${timer.id}" class="reset">Reset</button>
+        `;
+        timerGroupContainer.appendChild(timerElement);
+
+        // Aggiungi event listener ai pulsanti
+        timerGroupContainer.addEventListener('click', (event) => {
+            let timerId = Number(event.target.id.replace(/^\D+/g, ''));
+            if (event.target.classList.contains("startStop")) {
+                socket.emit("startStop", userId, timerId);
+            }
+            if (event.target.classList.contains("reset")) {
+                socket.emit("resetTimer", userId, timerId);
+            }
+            if (event.target.classList.contains("delete")) {
+                socket.emit("deleteTimer", userId, timerId);
+            }
+        });
+    });
+
+    // Aggiorna il valore del timer in tempo reale
+    socket.on("updateTimer", (timerId, timerValue) => {
+        const timerElement = document.querySelector(`#timer${timerId}`);
+        if (timerElement) {
+            timerElement.textContent = timerValue;
+        }
+    });
+
+    // Gestisci errori
+    socket.on("groupTimerError", (errorMessage) => {
+        alert(errorMessage);
+        window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
+    });
+}

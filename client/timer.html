@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Example</title>
+    <title>Timer di Gruppo</title>
     <script type="module" src="client.js"></script>
 </head>
 <body>
-    <div class="timerContainer">
-        <!-- Timer elements will be dynamically added here -->
+    <div class="timerGroupContainer">
+        <!-- Il timer sarà aggiunto dinamicamente qui -->
     </div>
 
-    <label for="timerValue">Timer value</label>
-    <input type="number" name="timerValue" id="timerValue" value="2500">
-    <button id="add">Add</button>
     <br>
-    <button id="manageGroups">Gruppi</button>
+    <button id="backToGroups">Torna ai Gruppi</button>
     <script>
-        document.querySelector("#manageGroups").addEventListener("click", () => {
+        document.querySelector("#backToGroups").addEventListener("click", () => {
             const userId = new URLSearchParams(window.location.search).get("userId");
             window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
         });
