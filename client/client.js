@@ -240,7 +240,8 @@ if (window.location.pathname.endsWith("group.html")) {
             document.querySelectorAll(".enterGroup").forEach(button => {
                 button.addEventListener("click", (event) => {
                     const groupId = event.target.dataset.groupId;
-                    socket.emit("enterGroup", groupId, userId);
+                    const userId = new URLSearchParams(window.location.search).get("userId");
+                    window.location.href = `timer.html?userId=${encodeURIComponent(userId)}&groupId=${encodeURIComponent(groupId)}`;
                 });
             });
         }
