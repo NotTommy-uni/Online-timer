@@ -441,4 +441,24 @@ io.on("connection", socket => {
             socket.emit("userGroupsList", results); // Invia la lista dei gruppi al client
         });
     });
+
+    socket.on("getSentNotifications", (groupId, userId) => {
+        const sql = `
+            SELECT n.id, u.name AS user_name, n.status
+            FROM timer.notifications n
+            INNER JOIN timer.users u ON n.fk_user = u.id
+            WHERE n.fk_group = ? AND EXISTS (
+                SELECT 1 FROM timer.groups g WHERE g.id = ? AND g.user_id = ?
+            )
+        `;
+        connection.query(sql, [groupId, groupId, userId], (err, results) => {
+            if (err) {
+                console.error("Errore durante il recupero delle notifiche inviate:", err.message);
+                socket.emit("notificationsError", "Errore durante il recupero delle notifiche inviate.");
+                return;
+            }
+    
+            socket.emit("sentNotificationsList", results); // Invia le notifiche al client
+        });
+    });
 });

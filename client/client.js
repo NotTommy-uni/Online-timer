@@ -331,6 +331,7 @@ if (window.location.pathname.endsWith("timer.html")) {
 
     if (groupId && userId) {
         socket.emit("enterGroup", groupId, userId);
+        socket.emit("getSentNotifications", groupId, userId); // Richiedi le notifiche inviate
     }
 
     socket.on("initializeTimers", ({ groupName, timers }) => {
@@ -379,5 +380,22 @@ if (window.location.pathname.endsWith("timer.html")) {
     socket.on("groupAccessDenied", (errorMessage) => {
         alert(errorMessage);
         window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
+    });
+
+    // Ricevi e visualizza le notifiche inviate
+    socket.on("sentNotificationsList", (notifications) => {
+        if (notifications.length === 0) {
+            notificationsContainer.innerHTML += "";
+        } else {
+            notificationsContainer.innerHTML = "<h3>Utenti:</h3>";
+            notifications.forEach(notification => {
+                const notificationElement = document.createElement("div");
+                notificationElement.classList.add("notificationItem");
+                notificationElement.innerHTML = `
+                    <p>${notification.user_name} (<strong>${notification.status}</strong>)</p>
+                `;
+                notificationsContainer.appendChild(notificationElement);
+            });
+        }
     });
 }
