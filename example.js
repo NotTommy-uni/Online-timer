@@ -214,9 +214,8 @@ io.on("connection", socket => {
 
     // Search if the user belongs to the group
     socket.on("enterGroup", (groupId, userId) => {
-        // Verifica se l'utente è il creatore del gruppo o ha accettato l'invito
         const sql = `
-            SELECT g.*, t.*
+            SELECT g.name AS group_name, g.user_id, t.id AS timer_id, t.time AS timer_value
             FROM timer.groups g
             INNER JOIN timer.timers t ON g.fk_timer = t.id
             WHERE g.id = ? AND (g.user_id = ? OR EXISTS (
@@ -225,22 +224,24 @@ io.on("connection", socket => {
                 WHERE n.fk_user = ? AND n.fk_group = g.id AND n.status = 'accepted'
             ))
         `;
-
+    
         connection.query(sql, [groupId, userId, userId], (err, results) => {
             if (err) {
                 console.error("Errore durante la verifica del gruppo:", err.message);
                 socket.emit("groupAccessError", "Errore durante la verifica del gruppo.");
                 return;
             }
-
+    
             if (results.length === 0) {
                 socket.emit("groupAccessDenied", "Non sei autorizzato a entrare in questo gruppo.");
                 return;
             }
-
+    
+            const groupName = results[0].group_name;
             const groupCreatorId = results[0].user_id;
-            const timerId = results[0].id;
-
+            const timerId = results[0].timer_id;
+            const timerValue = results[0].timer_value;
+    
             if (!userTimers[groupCreatorId]) {
                 userTimers[groupCreatorId] = {
                     startValue: {},
@@ -248,18 +249,18 @@ io.on("connection", socket => {
                     intervals: {}
                 };
             }
-
+    
             if (!userTimers[groupCreatorId].startValue[timerId]) {
-                // Inizializza il timer se non è già stato configurato
-                userTimers[groupCreatorId].startValue[timerId] = results[0].time;
-                userTimers[groupCreatorId].currentValue[timerId] = results[0].time;
+                userTimers[groupCreatorId].startValue[timerId] = timerValue;
+                userTimers[groupCreatorId].currentValue[timerId] = timerValue;
             } else {
-                // Imposta il valore corrente del timer
-                results[0].time = userTimers[groupCreatorId].currentValue[timerId];
+                results[0].timer_value = userTimers[groupCreatorId].currentValue[timerId];
             }
-
-            socket.emit("initializeTimers", [{ id: timerId, value: results[0].time }]);
-            console.log(userTimers);
+    
+            socket.emit("initializeTimers", {
+                groupName: groupName,
+                timers: [{ id: timerId, value: results[0].timer_value }]
+            });
         });
     });
 
@@ -440,41 +441,4 @@ io.on("connection", socket => {
             socket.emit("userGroupsList", results); // Invia la lista dei gruppi al client
         });
     });
-
-    socket.on("getGroupTimer", (groupId, userId) => {
-        const sql = `
-            SELECT g.name AS groupName, t.id AS timerId, t.time AS timerValue
-            FROM timer.groups g
-            INNER JOIN timer.timers t ON g.fk_timer = t.id
-            WHERE g.id = ? AND (g.user_id = ? OR EXISTS (
-                SELECT 1
-                FROM timer.notifications n
-                WHERE n.fk_user = ? AND n.fk_group = g.id AND n.status = 'accepted'
-            ))
-        `;
-
-        connection.query(sql, [groupId, userId, userId], (err, results) => {
-            if (err) {
-                console.error("Errore durante il recupero del timer del gruppo:", err.message);
-                socket.emit("groupTimerError", "Errore durante il recupero del timer del gruppo.");
-                return;
-            }
-
-            if (results.length === 0) {
-                socket.emit("groupTimerError", "Non sei autorizzato a visualizzare questo gruppo.");
-                return;
-            }
-
-            const groupDetails = {
-                groupName: results[0].groupName,
-                timer: {
-                    id: results[0].timerId,
-                    value: results[0].timerValue
-                }
-            };
-
-            socket.emit("groupTimerDetails", groupDetails);
-        });
-    });
-
 });

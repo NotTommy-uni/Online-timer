@@ -329,53 +329,54 @@ if (window.location.pathname.endsWith("timer.html")) {
     const userId = urlParams.get("userId");
     const timerGroupContainer = document.querySelector(".timerGroupContainer");
 
-    // Richiedi i dettagli del gruppo e il timer associato
     if (groupId && userId) {
-        socket.emit("getGroupTimer", groupId, userId);
+        socket.emit("enterGroup", groupId, userId);
     }
 
-    // Ricevi i dettagli del timer del gruppo
-    socket.on("groupTimerDetails", ({ groupName, timer }) => {
-        // Mostra il nome del gruppo
-        const groupNameElement = document.createElement("h1");
-        groupNameElement.textContent = `Gruppo: ${groupName}`;
-        timerGroupContainer.appendChild(groupNameElement);
+    socket.on("initializeTimers", ({ groupName, timers }) => {
+        if (timers.length > 0) {
+            const timer = timers[0];
 
-        // Mostra il timer
-        const timerElement = document.createElement("div");
-        timerElement.classList.add("timer");
-        timerElement.innerHTML = `
-            <p id="timer${timer.id}">${timer.value}</p>
-            <button id="startStop${timer.id}" class="startStop">Start</button>
-            <button id="reset${timer.id}" class="reset">Reset</button>
-        `;
-        timerGroupContainer.appendChild(timerElement);
+            // Mostra il nome del gruppo
+            const groupNameElement = document.createElement("h1");
+            groupNameElement.textContent = `Gruppo: ${groupName}`;
+            timerGroupContainer.appendChild(groupNameElement);
 
-        // Aggiungi event listener ai pulsanti
-        timerGroupContainer.addEventListener('click', (event) => {
-            let timerId = Number(event.target.id.replace(/^\D+/g, ''));
-            if (event.target.classList.contains("startStop")) {
-                socket.emit("startStop", userId, timerId);
-            }
-            if (event.target.classList.contains("reset")) {
-                socket.emit("resetTimer", userId, timerId);
-            }
-            if (event.target.classList.contains("delete")) {
-                socket.emit("deleteTimer", userId, timerId);
-            }
-        });
+            // Mostra il timer associato al gruppo
+            const timerElement = document.createElement("div");
+            timerElement.classList.add("timer");
+            timerElement.innerHTML = `
+                <p id='timer${timer.id}'>${timer.value}</p>
+                <button id='startStop${timer.id}' class='startStop'>Start</button>
+                <button id='reset${timer.id}' class='reset'>Reset</button>
+            `;
+            timerGroupContainer.appendChild(timerElement);
+        }
     });
 
-    // Aggiorna il valore del timer in tempo reale
-    socket.on("updateTimer", (timerId, timerValue) => {
+    timerGroupContainer.addEventListener('click', (event) => {
+        const timerId = event.target.id.replace(/^\D+/g, '');
+        if (event.target.classList.contains("startStop")) {
+            socket.emit("startStop", userId, timerId);
+        }
+        if (event.target.classList.contains("reset")) {
+            socket.emit("resetTimer", userId, timerId);
+        }
+    });
+
+    socket.on('updateTimer', (timerId, timerValue) => {
         const timerElement = document.querySelector(`#timer${timerId}`);
         if (timerElement) {
             timerElement.textContent = timerValue;
         }
     });
 
-    // Gestisci errori
-    socket.on("groupTimerError", (errorMessage) => {
+    socket.on("groupAccessError", (errorMessage) => {
+        alert(errorMessage);
+        window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
+    });
+
+    socket.on("groupAccessDenied", (errorMessage) => {
         alert(errorMessage);
         window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
     });
