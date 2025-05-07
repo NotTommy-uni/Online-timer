@@ -57,7 +57,7 @@ io.on("connection", socket => {
 
     // Gestisce l'autenticazione
     socket.on('login', (username, password) => {
-        const sql = `SELECT * FROM timer.users WHERE name = ? AND password = ?`;
+        const sql = `SELECT * FROM timer.users WHERE name = ? AND password = SHA2(?, 256)`;
         connection.query(sql, [username, password], (error, results) => {
             if (error) {
                 console.error('Errore nel server: ', error.message);
@@ -91,7 +91,7 @@ io.on("connection", socket => {
             }
 
             // Inserimento dell'utente senza specificare l'ID
-            const insertUserSql = "INSERT INTO timer.users (name, password) VALUES (?, ?)";
+            const insertUserSql = "INSERT INTO timer.users (name, password) VALUES (?, SHA2(?, 256));)";
             connection.query(insertUserSql, [username, password], (insertErr, insertResults) => {
                 if (insertErr) {
                     console.error("Errore durante l'inserimento dell'utente:", insertErr.message);
