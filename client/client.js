@@ -259,6 +259,7 @@ if (window.location.pathname.endsWith("group.html")) {
 if (window.location.pathname.endsWith("newgroup.html")) {
     const createGroupButton = document.querySelector("#createGroup");
     const groupNameInput = document.querySelector("#groupName");
+    const groupTimerValueInput = document.querySelector("#groupTimerValue");
     const userListContainer = document.querySelector("#userListContainer");
 
     let selectedUserIds = new Set();
@@ -304,13 +305,14 @@ if (window.location.pathname.endsWith("newgroup.html")) {
     // Crea un gruppo e invia gli inviti
     createGroupButton.addEventListener("click", () => {
         const groupName = groupNameInput.value;
+        const groupTimerValue = parseInt(groupTimerValueInput.value, 10);
 
-        if (!groupName || selectedUserIds.size === 0) {
-            alert("Inserisci un nome per il gruppo e seleziona almeno un utente.");
+        if (!groupName || selectedUserIds.size === 0 || isNaN(groupTimerValue) || groupTimerValue <= 0) {
+            alert("Inserisci un nome per il gruppo, un valore valido per il timer e seleziona almeno un utente.");
             return;
         }
 
-        socket.emit("createGroup", groupName, userId, Array.from(selectedUserIds));
+        socket.emit("createGroup", groupName, userId, Array.from(selectedUserIds), groupTimerValue);
     });
 
     socket.on("groupCreated", (groupId, groupName, timerId) => {

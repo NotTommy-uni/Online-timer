@@ -264,12 +264,12 @@ io.on("connection", socket => {
         });
     });
 
-    socket.on("createGroup", (groupName, userId, invitedUserIds) => {
-        const insertTimerSql = "INSERT INTO timer.timers VALUES (NULL, 3000, ?, 1)";
-        connection.query(insertTimerSql, [userId], (timerError, timerResults) => {
+    socket.on("createGroup", (groupName, userId, invitedUserIds, groupTimerValue) => {
+        const insertTimerSql = "INSERT INTO timer.timers VALUES (NULL, ?, ?, 1)";
+        connection.query(insertTimerSql, [groupTimerValue, userId], (timerError, timerResults) => {
             if (timerError) {
-                console.error("Error creating group timer:", timerError.message);
-                socket.emit("groupCreationError", "Failed to create group timer. Please try again.");
+                console.error("Errore durante la creazione del timer del gruppo:", timerError.message);
+                socket.emit("groupCreationError", "Errore durante la creazione del timer del gruppo. Riprova.");
                 return;
             }
 
@@ -278,8 +278,8 @@ io.on("connection", socket => {
             const insertGroupSql = "INSERT INTO timer.groups (name, fk_timer, user_id) VALUES (?, ?, ?)";
             connection.query(insertGroupSql, [groupName, timerId, userId], (groupError, groupResults) => {
                 if (groupError) {
-                    console.error("Error creating group:", groupError.message);
-                    socket.emit("groupCreationError", "Failed to create group. Please try again.");
+                    console.error("Errore durante la creazione del gruppo:", groupError.message);
+                    socket.emit("groupCreationError", "Errore durante la creazione del gruppo. Riprova.");
                     return;
                 }
 
@@ -289,7 +289,7 @@ io.on("connection", socket => {
                     const insertNotificationSql = "INSERT INTO timer.notifications (fk_user, fk_group, status) VALUES (?, ?, 'sent')";
                     connection.query(insertNotificationSql, [invitedUserId, groupId], (notificationError) => {
                         if (notificationError) {
-                            console.error("Error sending invite:", notificationError.message);
+                            console.error("Errore durante l'invio dell'invito:", notificationError.message);
                             return;
                         }
 
@@ -306,8 +306,8 @@ io.on("connection", socket => {
                     };
                 }
 
-                userTimers[userId].startValue[timerId] = 0;
-                userTimers[userId].currentValue[timerId] = 0;
+                userTimers[userId].startValue[timerId] = groupTimerValue;
+                userTimers[userId].currentValue[timerId] = groupTimerValue;
 
                 socket.emit("groupCreated", groupId, groupName, timerId);
             });
