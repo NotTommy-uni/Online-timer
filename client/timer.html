@@ -4,12 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#317EFB" />
-    <title>Group</title>
+    <title>Timer</title>
     <script type="module" src="client.js"></script>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/styleGroup.css" />
+    <link rel="stylesheet" href="css/styleTimer.css" />
   </head>
-
   <body>
     <header>
       <div class="title-container">
@@ -25,31 +24,14 @@
 
     <main>
       <section id="section-1">
-        <h2>Notifiche</h2>
+        <h2>Timer Management</h2>
         <hr />
-        <!-- Notifiche -->
-        <div id="notificationsContainer">
-          <!-- Le notifiche saranno aggiunte dinamicamente qui -->
-        </div>
-      </section>
 
-      <section id="section-2">
-        <h2>I tuoi gruppi</h2>
-        <hr />
-        <input
-          type="text"
-          id="searchGroupInput"
-          placeholder="Cerca gruppo..."
-        />
-        <!-- Lista dei gruppi -->
-        <div id="userGroupsContainer">
-          <!-- I gruppi saranno aggiunti dinamicamente qui -->
+        <div class="timerContainer">
+          <!-- Timer elements will be dynamically added here -->
         </div>
 
-        <!-- Pulsante per accedere alla pagina di creazione gruppo -->
-        <div class="navNewgroup">
-          <button id="createNewGroup">Crea Nuovo Gruppo</button>
-        </div>
+        <button id="addTimerBtn">+</button>
       </section>
 
       <section id="sectionNavBotton">
@@ -78,10 +60,6 @@
     window.location.href = `group.html?userId=${encodeURIComponent(userId)}`;
   });
 
-  document.querySelector("#createNewGroup").addEventListener("click", () => {
-    window.location.href = `newgroup.html?userId=${encodeURIComponent(userId)}`;
-  });
-
   // Evidenzia bottone attivo
   const currentPage = window.location.pathname.split("/").pop();
 
@@ -91,3 +69,4 @@
     document.querySelector("#manageGroups").classList.add("active");
   }
 </script>
+

@@ -4,61 +4,63 @@
 }
 
 * {
-  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
   box-sizing: border-box;
 }
 
 h1 {
   font-weight: 700;
   font-size: 30px;
-  justify-content: center;
-  margin-left: 15px;
+  text-align: center;
   color: var(--s);
   margin-bottom: 5px;
 }
 
 body {
-  user-select: none;
-  overflow-y: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
   background: hsl(218deg 50% 91%);
-  height: 100vh;
-  margin: 0;
+  min-height: 100vh;
+  padding: 2em 1em;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .screen-1 {
   background: var(--p);
-  padding: 1.5em; /* ridotto da 2em */
+  padding: 1em;
   display: flex;
   flex-direction: column;
   border-radius: 30px;
   box-shadow: 0 0 2em hsl(231deg 62% 94%);
-  gap: 1.2em; /* ridotto da 2em */
-  width: 400px;
-  max-width: 90vw;
+  gap: 1.2em;
+  width: 100%;
+  max-width: 400px;
 }
 
 .screen-1 .logo {
-  margin-top: -1.5em; /* leggermente meno negativo */
+  margin-top: -1.5em;
   display: flex;
   justify-content: center;
 }
 
 .screen-1 .logo img {
-  width: 130px; /* leggermente più piccolo */
-  margin-top: 25px; /* meno spazio sopra */
-  margin-bottom: -15px; /* rimosso spazio sotto */
+  width: 130px;
+  margin-top: 25px;
+  margin-bottom: -15px;
 }
 
-.email, .password {
+.email,
+.password {
   background: white;
-  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.08); /* ombra più soft */
-  padding: 1em; /* ridotto da 1.5em */
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.08);
+  padding: 1em;
   display: flex;
   flex-direction: column;
-  gap: 0.6em; /* leggermente ridotto */
+  gap: 0.6em;
   border-radius: 20px;
   color: var(--s);
   transition: box-shadow 0.3s ease;
@@ -66,7 +68,8 @@ body {
   font-size: 20px;
 }
 
-.email:hover, .password:hover {
+.email:hover,
+.password:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
@@ -74,7 +77,7 @@ input {
   outline: none;
   border: none;
   font-size: 1em;
-  padding: 0.5em; /* un po' meno padding */
+  padding: 0.5em;
   border-radius: 8px;
   background: hsl(213deg 85% 97%);
 }
@@ -94,7 +97,7 @@ ion-icon {
 }
 
 button.login {
-  padding: 0.8em; /* meno padding */
+  padding: 0.8em;
   background: var(--s);
   color: white;
   border: none;
@@ -109,8 +112,8 @@ button.login {
   display: flex;
   font-size: 1em;
   color: hsl(0deg 0% 37%);
-  gap: 5em; /* meno distacco */
-  padding-bottom: 4em; /* da 10em a 4em */
+  gap: 5em;
+  padding-bottom: 1em;
   justify-content: center;
 }
 
@@ -123,5 +126,35 @@ svg {
   margin: auto;
 }
 
-  
+/* Messaggi */
+.message-box {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 500px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  z-index: 9999;
+  text-align: center;
+  transition: opacity 0.4s ease;
+}
 
+.message-box.hidden {
+  display: none;
+}
+
+.message-box.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 2px solid #c3e6cb;
+}
+
+.message-box.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+/* ---------- Responsive CSS ---------- */
